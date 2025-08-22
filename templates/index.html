@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>BSE IPO Process Status</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    /* ======= Design tokens ======= */
+    :root {
+      --bg: #0b1220;
+      --surface: #0f1627;
+      --surface-2: #101a2e;
+      --text: #e9f0ff;
+      --muted: #a9b7d2;
+      --border: #22324f;
+      --brand: #59a3ff;
+      --brand-2: #30d7c4;
+      --danger: #ff6b89;
+      --radius: 16px;
+      --shadow: 0 12px 30px rgba(0,0,0,.35);
+
+      /* base sizes (can be scaled by density control) */
+      --fs-1: 14px;  /* table body */
+      --fs-2: 15px;  /* small labels */
+      --fs-3: 18px;  /* section titles */
+      --fs-4: 28px;  /* page title */
+      --pad-1: 10px; /* cell padding */
+      --pad-2: 12px; /* control padding */
+      --pad-3: 18px; /* panel padding */
+    }
+
+    /* density modifiers (toggled by buttons) */
+    .density-cozy:root {
+      --fs-1: 13px; --fs-2: 14px; --fs-3: 17px; --fs-4: 26px;
+      --pad-1: 8px; --pad-2: 10px; --pad-3: 16px;
+    }
+    .density-compact:root {
+      --fs-1: 12px; --fs-2: 13px; --fs-3: 16px; --fs-4: 24px;
+      --pad-1: 6px; --pad-2: 8px;  --pad-3: 12px;
+    }
+
+    /* ======= Base ======= */
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(1200px 600px at 10% -10%, #12254a 0%, transparent 60%),
+        radial-gradient(1000px 700px at 110% -20%, #0f2a4a 0%, transparent 60%),
+        linear-gradient(180deg, #0a1120, #0b1427 40%, #0a162b);
+      padding: 28px 20px 40px;
+    }
+    .container { max-width: 1400px; margin: 0 auto; }
+
+    /* ======= Header / toolbar ======= */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .title-wrap {
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    }
+    h1 {
+      margin: 0;
+      font-size: var(--fs-4);
+      font-weight: 750;
+      letter-spacing: .2px;
+      text-shadow: 0 2px 0 rgba(0,0,0,.2);
+    }
+    .tag {
+      font-size: var(--fs-2);
+      color: var(--muted);
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      padding: 6px 10px;
+      border-radius: 999px;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: auto auto 1fr auto;
+      gap: 12px;
+      align-items: center;
+      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.03));
+      border: 1px solid var(--border);
+      padding: var(--pad-2);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .btn {
+      appearance: none; border: none; cursor: pointer;
+      padding: 10px 14px; border-radius: 12px;
+      font-weight: 650; letter-spacing: .2px; color: white;
+      background: linear-gradient(180deg, #4da3ff, #2b7bff);
+      box-shadow: 0 8px 20px rgba(45,123,255,.35);
+      transition: transform .03s ease, filter .15s ease;
+    }
+    .btn.secondary {
+      background: linear-gradient(180deg, #2dd4bf, #17b39f);
+      box-shadow: 0 8px 20px rgba(47,214,191,.35);
+    }
+    .btn:active { transform: translateY(1px); }
+    .btn[disabled] { filter: grayscale(.5) brightness(.85); cursor: not-allowed; }
+
+    .status {
+      display: flex; align-items: center; gap: 10px;
+      min-height: 44px;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      padding: 10px 12px;
+      border-radius: 12px;
+    }
+    .status .spinner {
+      width: 16px; height: 16px; border-radius: 999px;
+      border: 3px solid rgba(255,255,255,.22);
+      border-top-color: #7fb6ff;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .links { display: flex; gap: 10px; }
+    .link { color: var(--brand); text-decoration: none; font-weight: 600; }
+    .link:hover { text-decoration: underline; }
+
+    /* density controls */
+    .density {
+      display: inline-flex; gap: 6px; padding: 6px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+    .density .chip {
+      padding: 6px 10px; border-radius: 8px; cursor: pointer;
+      color: var(--muted); border: 1px solid transparent;
+    }
+    .density .chip.active {
+      color: var(--text);
+      border-color: #1e3353;
+      background: linear-gradient(180deg, rgba(90,169,255,.18), rgba(90,169,255,.08));
+      box-shadow: 0 8px 20px rgba(90,169,255,.12) inset;
+    }
+
+    /* ======= Tabs ======= */
+    .tabs { margin: 18px 0 6px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .tab-btn {
+      padding: 10px 12px; border-radius: 12px; cursor: pointer;
+      color: var(--muted); border: 1px solid var(--border); background: var(--surface);
+      transition: all .15s;
+    }
+    .tab-btn.active {
+      color: var(--text);
+      border-color: #1d3a63;
+      background: linear-gradient(180deg, rgba(90,169,255,.18), rgba(90,169,255,.08));
+      box-shadow: 0 8px 20px rgba(90,169,255,.12) inset;
+    }
+
+    /* ======= Panels & controls ======= */
+    .panel {
+      margin-top: 12px; padding: var(--pad-3);
+      border-radius: var(--radius);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+    }
+    .panel h2 {
+      margin: 0 0 8px; font-size: var(--fs-3); font-weight: 750;
+      letter-spacing: .2px;
+    }
+    .controls {
+      display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+      margin: 10px 0 14px;
+    }
+    .search {
+      flex: 1; min-width: 240px; display: flex; align-items: center; gap: 10px;
+      border: 1px solid var(--border); border-radius: 12px;
+      padding: 8px 12px; background: var(--surface-2);
+    }
+    .search input {
+      border: none; outline: none; background: transparent; color: var(--text);
+      width: 100%; font-size: var(--fs-2);
+    }
+    .count { color: var(--muted); font-size: var(--fs-2); }
+
+    /* ======= Table ======= */
+    .table-wrap {
+      overflow: auto; border: 1px solid var(--border); border-radius: 12px;
+    }
+    table {
+      width: 100%; border-collapse: separate; border-spacing: 0; min-width: 900px;
+      background: linear-gradient(180deg, rgba(255,255,255,.01), rgba(255,255,255,.02));
+    }
+    thead th {
+      position: sticky; top: 0; z-index: 2;
+      font-size: var(--fs-2); font-weight: 700;
+      text-align: left; white-space: nowrap;
+      padding: calc(var(--pad-1) + 2px) var(--pad-1);
+      color: #d7e7ff;
+      background: linear-gradient(180deg, #0e1b31, #0e1729);
+      border-bottom: 1px solid #27406a;
+    }
+    tbody td {
+      padding: var(--pad-1); font-size: var(--fs-1);
+      color: var(--text);
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    tbody tr:nth-child(odd) td { background: rgba(255,255,255,.015); }
+    tbody tr:hover td { background: rgba(90,169,255,.06); }
+
+    .muted { color: var(--muted); }
+    @media (max-width: 760px) {
+      .toolbar { grid-template-columns: 1fr; }
+      .links { justify-content: flex-start; }
+      table { min-width: 700px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="title-wrap">
+        <h1>BSE IPO Process Status</h1>
+        <span class="tag" id="lastUpdated">last updated: —</span>
+      </div>
+      <div class="density" id="densityCtl">
+        <span class="chip active" data-d="comfortable">Comfortable</span>
+        <span class="chip" data-d="cozy">Cozy</span>
+        <span class="chip" data-d="compact">Compact</span>
+      </div>
+    </header>
+
+    <div class="toolbar">
+      <button class="btn" id="runBtn">Run Scraper</button>
+      <button class="btn secondary" id="refreshBtn" title="Fetch latest JSON only">Refresh Data</button>
+      <div class="status" id="statusBox">
+        <span class="spinner" id="spinner" style="display:none"></span>
+        <span id="statusText">Idle</span>
+      </div>
+      <div class="links">
+        <a class="link" href="/data" target="_blank" rel="noopener">Download JSON</a>
+      </div>
+    </div>
+
+    <div class="tabs" id="tabs"></div>
+
+    <div id="sections"></div>
+  </div>
+
+  <script>
+    // ---- Config (Flask endpoints assumed) ----
+    const RUN_URL  = "/run-spider";
+    const DATA_URL = "/data";
+
+    // Exact section titles (display only; data grouping still by numeric section)
+    const SECTION_TITLES = {
+      1: "1. Draft offer document under process at BSE:",
+      2: "2. Draft Offer Document in relation to which clarifications are sought by the Exchange and respond BSE from Issuer is awaited:",
+      3: "3. Document in relation to which in-principal Approval issued during the fortnight:",
+      4: "4. List of documents which have been withdrawn/ returned by the Exchange during the fortnight."
+    };
+
+    const state = {
+      activeTab: 1,
+      raw: [],
+      filtered: {1:[],2:[],3:[],4:[]},
+      filterText: ""
+    };
+
+    const runBtn     = document.getElementById("runBtn");
+    const refreshBtn = document.getElementById("refreshBtn");
+    const statusBox  = document.getElementById("statusBox");
+    const statusText = document.getElementById("statusText");
+    const spinner    = document.getElementById("spinner");
+    const lastUpd    = document.getElementById("lastUpdated");
+    const tabsWrap   = document.getElementById("tabs");
+    const sectionsEl = document.getElementById("sections");
+
+    // ----- Build tabs & sections -----
+    function initUI(){
+      tabsWrap.innerHTML = "";
+      sectionsEl.innerHTML = "";
+      for (let s=1; s<=4; s++){
+        // tab button
+        const tb = document.createElement("button");
+        tb.className = "tab-btn" + (s===state.activeTab ? " active" : "");
+        tb.textContent = s.toString();
+        tb.onclick = () => setActiveTab(s);
+        tabsWrap.appendChild(tb);
+
+        // panel for section
+        const sec = document.createElement("section");
+        sec.className = "panel";
+        sec.dataset.section = s;
+
+        const h2 = document.createElement("h2");
+        h2.textContent = SECTION_TITLES[s].replace(/\s+$/,'');
+        sec.appendChild(h2);
+
+        const controls = document.createElement("div");
+        controls.className = "controls";
+        controls.innerHTML = `
+          <div class="search">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M21 21l-4.3-4.3M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <input type="text" placeholder="Filter rows in this page..." data-filter="${s}" />
+          </div>
+          <div class="count" id="count-${s}">0 rows</div>
+        `;
+        sec.appendChild(controls);
+
+        const wrap = document.createElement("div");
+        wrap.className = "table-wrap";
+        wrap.innerHTML = `<table id="table-${s}"><thead></thead><tbody></tbody></table>`;
+        sec.appendChild(wrap);
+
+        sectionsEl.appendChild(sec);
+      }
+
+      // attach filter listeners
+      document.querySelectorAll('input[data-filter]').forEach(inp=>{
+        inp.addEventListener('input', (e)=>{
+          state.filterText = e.target.value.trim().toLowerCase();
+          renderAll();
+        });
+      });
+
+      renderAll();
+    }
+
+    function setActiveTab(n){
+      state.activeTab = n;
+      document.querySelectorAll(".tab-btn").forEach((b,i)=> b.classList.toggle("active", (i+1)===n));
+      const sec = document.querySelector(`section.panel[data-section="${n}"]`);
+      if (sec) sec.scrollIntoView({behavior:"smooth", block:"start"});
+    }
+
+    function setStatus(text, phase="") {
+      statusText.textContent = text;
+      spinner.style.display = phase==="run" ? "inline-block" : "none";
+    }
+
+    function enableButtons(enabled){
+      runBtn.disabled = !enabled;
+      refreshBtn.disabled = !enabled;
+    }
+
+    // ----- Data helpers -----
+    async function fetchData(){
+      const res = await fetch(DATA_URL, {cache:"no-store"});
+      if (!res.ok) throw new Error("No data yet (run the scraper)");
+      return await res.json();
+    }
+
+    function splitBySection(items){
+      const out = {1:[],2:[],3:[],4:[]};
+      for (const r of items){
+        const s = parseInt(r.section, 10);
+        if (out[s]) out[s].push(r);
+      }
+      return out;
+    }
+
+    function applyFilter(rows, text){
+      if (!text) return rows;
+      return rows.filter(r=>{
+        for (const k in r){
+          const v = String(r[k] ?? "").toLowerCase();
+          if (v.includes(text)) return true;
+        }
+        return false;
+      });
+    }
+
+    function renderTable(sec, rows){
+      const table = document.getElementById(`table-${sec}`);
+      const thead = table.querySelector("thead");
+      const tbody = table.querySelector("tbody");
+      thead.innerHTML = "";
+      tbody.innerHTML = "";
+
+      if (!rows.length){
+        tbody.innerHTML = `<tr><td class="muted" style="padding:14px">No data.</td></tr>`;
+        document.getElementById(`count-${sec}`).textContent = "0 rows";
+        return;
+      }
+
+      const cols = Object.keys(rows[0]);
+
+      // header
+      const trh = document.createElement("tr");
+      cols.forEach(c=>{
+        const th = document.createElement("th");
+        th.textContent = c;
+        trh.appendChild(th);
+      });
+      thead.appendChild(trh);
+
+      // body
+      const frag = document.createDocumentFragment();
+      rows.forEach(r=>{
+        const tr = document.createElement("tr");
+        cols.forEach(c=>{
+          const td = document.createElement("td");
+          const val = r[c];
+          if (typeof val === "string" && /^https?:\/\//i.test(val)) {
+            const a = document.createElement("a");
+            a.href = val; a.target = "_blank"; a.rel = "noopener"; a.className = "link"; a.textContent = val;
+            td.appendChild(a);
+          } else {
+            td.textContent = (val==null ? "" : String(val));
+          }
+          tr.appendChild(td);
+        });
+        frag.appendChild(tr);
+      });
+      tbody.appendChild(frag);
+
+      document.getElementById(`count-${sec}`).textContent = `${rows.length} row${rows.length!==1?"s":""}`;
+    }
+
+    function renderAll(){
+      for (let s=1; s<=4; s++){
+        const base = state.rawBySection?.[s] ?? [];
+        const rows = applyFilter(base, state.filterText);
+        state.filtered[s] = rows;
+        renderTable(s, rows);
+      }
+    }
+
+    // ----- Actions -----
+    async function refreshOnly(){
+      try{
+        enableButtons(false);
+        setStatus("Fetching latest JSON...", "run");
+        const data = await fetchData();
+        const items = Array.isArray(data) ? data : (data.items || data || []);
+        state.raw = items;
+        state.rawBySection = splitBySection(items);
+        renderAll();
+        setStatus("Data loaded.", "");
+        lastUpd.textContent = "last updated: " + new Date().toLocaleString();
+      }catch(err){
+        console.error(err);
+        setStatus("Failed to fetch data: " + err.message, "");
+      }finally{
+        enableButtons(true);
+      }
+    }
+
+    async function runScraper(){
+      try{
+        enableButtons(false);
+        setStatus("Running spider...", "run");
+        const res = await fetch(RUN_URL, {cache:"no-store"});
+        if (!res.ok){
+          const txt = await res.text();
+          throw new Error(`Run failed: ${res.status} ${txt}`);
+        }
+        const info = await res.json();
+        setStatus(`Spider finished in ${info.duration ?? "?"}s. Loading data...`, "run");
+        await refreshOnly();
+      }catch(err){
+        console.error(err);
+        setStatus("Error: " + err.message, "");
+      }finally{
+        enableButtons(true);
+      }
+    }
+
+    // density control
+    document.getElementById("densityCtl").addEventListener("click", (e)=>{
+      const btn = e.target.closest(".chip");
+      if (!btn) return;
+      document.querySelectorAll("#densityCtl .chip").forEach(c=>c.classList.remove("active"));
+      btn.classList.add("active");
+      const d = btn.dataset.d;
+      document.documentElement.classList.remove("density-cozy","density-compact");
+      if (d==="cozy") document.documentElement.classList.add("density-cozy");
+      if (d==="compact") document.documentElement.classList.add("density-compact");
+    });
+
+    // wire buttons
+    document.getElementById("runBtn").addEventListener("click", runScraper);
+    document.getElementById("refreshBtn").addEventListener("click", refreshOnly);
+
+    // init
+    initUI();
+    refreshOnly();
+  </script>
+</body>
+</html>

@@ -99,3 +99,13 @@ ITEM_PIPELINES = {
 
 # Optional: change base output name (without extension)
 EXPORT_BASE_PATH = "outputs/bse_public_issues"
+
+ITEM_PIPELINES = {
+    "scrapy.pipelines.files.FilesPipeline": 300,          # downloads PDFs first
+    "bse_scraper.pipelines.ExcelAndJsonExportPipeline": 500,  # then we write Excel/JSON
+}
+
+FILES_STORE = "outputs/pdfs"  # where downloaded PDFs will be saved
+
+# Optional: leave your other settings as is
+EXPORT_BASE_PATH = "outputs/bse_public_issues"
