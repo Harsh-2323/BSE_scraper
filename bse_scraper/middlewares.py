@@ -103,4 +103,3 @@ class BseScraperDownloaderMiddleware:
         spider.logger.info("Spider opened: %s" % spider.name)
 
 
-print("hello world")
