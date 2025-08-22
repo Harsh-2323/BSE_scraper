@@ -7,8 +7,8 @@ env/
 .vscode/
 
 # Scrapy outputs (under repo root -> bse_scraper/outputs)
-bse_scraper/outputs/
-bse_scraper/downloads/
+outputs/
+downloads/
 
 # Excel temp/lock files anywhere
 ~$*.xls*
