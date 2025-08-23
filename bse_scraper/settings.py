@@ -109,3 +109,15 @@ FILES_STORE = "outputs/pdfs"  # where downloaded PDFs will be saved
 
 # Optional: leave your other settings as is
 EXPORT_BASE_PATH = "outputs/bse_public_issues"
+# Use Playwright for HTTP/HTTPS
+DOWNLOAD_HANDLERS = {
+    "http": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
+    "https": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
+}
+
+# Scrapy already has this in your file, but ensure it's present:
+TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
+
+# Optional (good defaults)
+PLAYWRIGHT_BROWSER_TYPE = "chromium"
+PLAYWRIGHT_LAUNCH_OPTIONS = {"headless": True}
