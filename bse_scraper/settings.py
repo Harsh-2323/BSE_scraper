@@ -121,3 +121,37 @@ TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
 # Optional (good defaults)
 PLAYWRIGHT_BROWSER_TYPE = "chromium"
 PLAYWRIGHT_LAUNCH_OPTIONS = {"headless": True}
+
+
+import os
+
+# ---------- Cloudflare R2 / S3 ----------
+AWS_ACCESS_KEY_ID        = os.getenv("R2_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY    = os.getenv("R2_SECRET_ACCESS_KEY")
+AWS_ENDPOINT_URL         = os.getenv("R2_ENDPOINT")              # <- map your R2 endpoint
+AWS_SIGNATURE_VERSION    = "s3v4"                                 # good for R2
+AWS_S3_ADDRESSING_STYLE  = "virtual"                              # R2-friendly (default is fine too)
+
+# IMPORTANT: must include a trailing slash or a prefix after the bucket
+_bucket = os.getenv("R2_BUCKET", "market-filings")
+FILES_STORE = f"s3://{_bucket}/"                                  # <-- the trailing slash fixes the crash
+
+# Public URL you set for the bucket (R2.dev or custom domain)
+R2_PUBLIC_BASEURL = os.getenv("R2_PUBLIC_BASEURL", f"https://{_bucket}.r2.dev")
+
+# ---------- Postgres ----------
+DATABASE_URL = (
+    os.getenv("DATABASE_URL") or
+    os.getenv("DB_DSN_DIRECT") or
+    os.getenv("DB_DSN") or
+    os.getenv("DB_DSN_SESSION")
+)
+
+# ---------- Pipelines ----------
+ITEM_PIPELINES = {
+    "bse_scraper.pipelines_compact_r2.R2FilesPipeline": 100,
+    "bse_scraper.pipelines_compact_r2.IssuesCompactDBPipeline": 300,
+}
+
+ROBOTSTXT_OBEY = True
+FEED_EXPORT_ENCODING = "utf-8"
